@@ -1,0 +1,2 @@
+# squarify
+Make images square
