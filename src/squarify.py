@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
 from PIL import Image
+
+import argparse
+import glob
 import os
 import sys
-import glob
 
 extensions = ['jpg', 'jpeg', 'png']
 
@@ -24,7 +26,7 @@ def square_img(img, output):
     bg.paste(im, (x,y))
     bg.save(output, quality=100)
 
-def glob_jpeg(path):
+def glob_extns(path):
     images = []
     for ext in extensions:
         p = os.path.join(path, f"*.{ext}")
@@ -32,12 +34,19 @@ def glob_jpeg(path):
     
     return images
 
-if __name__ == "__main__":
-    path = '.'
-    if len(sys.argv) == 2:
-        path = sys.argv[1]
+def main(directory, file):
+    images = []
+    if file is not None:
+        for f in file:
+            idx = f.rfind('.')
+            if f[idx + 1:] not in extensions:
+                print(f"{f} not a recognized format... ignoring")
+                continue
+            images.append(f)
 
-    images = glob_jpeg(path)
+    if directory is not None:
+        images.append(glob_extns(directory))
+
     for im in images:
         idx = im.rfind('.') 
         output = f"{im[:idx]}_square{im[idx:]}"
@@ -47,4 +56,24 @@ if __name__ == "__main__":
             continue
 
         square_img(im, output)
+
+def setup_argparse():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("-d", "--dir")
+    parser.add_argument("-f", "--file", action="append")
+
+    args = parser.parse_args()
+
+    if not args.dir and not args.file:
+        parser.error("No action supplied, please define --dir or --file")
+        return None
+
+    return args
+
+if __name__ == "__main__":
+    args = setup_argparse()
+
+    if args is not None:
+        main(args.dir, args.file)
 
